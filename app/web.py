@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 from flask import Flask, request, jsonify, render_template, abort
 
+from app.nrb_llm import nrb_llm_reply
+
 from app.producer.producer_sdk import (
     new_action_attempt_id,
     build_refund_ccr,
@@ -223,7 +225,21 @@ def api_chat():
         oid = m.group(1).upper()
         if oid not in ORDERS:
             reply = "I couldn't find that order number in the demo dataset. Try **ORD-10001**, **ORD-10002**, or **ORD-10003**."
-            return jsonify({"reply_markdown": reply, "state": next_state})
+                # Optional NRB LLM (safe): improves UX, never decides, never sees RB.
+    try:
+        nrb_context = {}
+        oid = next_state.get("order_id")
+        if oid and oid in ORDERS:
+            nrb_context["order"] = dict(ORDERS[oid])
+            nrb_context["shipping"] = SHIP.get(oid, {}).get("events", "")
+            nrb_context["policy"] = POLICY.get("R1", {})
+        llm = nrb_llm_reply(msg, next_state, nrb_context)
+        if llm:
+            reply = llm
+    except Exception:
+        pass
+
+    return jsonify({"reply_markdown": reply, "state": next_state})
 
         next_state["order_id"] = oid
         o = ORDERS[oid]
