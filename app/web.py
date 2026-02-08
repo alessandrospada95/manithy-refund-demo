@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any, List
 from flask import Flask, request, jsonify, render_template, abort
 
-from app.nrb_llm import nrb_llm_reply
+from app.nrb_llm import nrb_llm_rewrite
 
 from app.producer.producer_sdk import (
     new_action_attempt_id,
@@ -29,6 +29,14 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 OUT_DIR = BASE_DIR / "out"
 DATA_DIR = BASE_DIR / "nrb_knowledge" / "data"
 CONTRACTS_DIR = BASE_DIR / "contracts"
+
+
+# Load .env (local only, never commit)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=BASE_DIR / ".env")
+except Exception:
+    pass
 
 
 # -----------------------------------------------------------------------------
@@ -213,39 +221,44 @@ def api_chat():
 
     lower = msg.lower()
     next_state = dict(state)
-    reply = ""
 
-    # Minimal intent parsing (NRB UX only)
-    if "ord-" in lower:
-        import re
-        m = re.search(r"(ord-\d+)", lower, re.I)
-        if not m:
-            return jsonify({"reply_markdown": "Please share your order number (e.g., **ORD-10001**).", "state": next_state})
+    # 1) Update state deterministically from message
+    import re
+    m = re.search(r"(ord-\d+)", lower, re.I)
+    if m:
+        next_state["order_id"] = m.group(1).upper()
 
-        oid = m.group(1).upper()
-        if oid not in ORDERS:
-            reply = "I couldn't find that order number in the demo dataset. Try **ORD-10001**, **ORD-10002**, or **ORD-10003**."
-                # Optional NRB LLM (safe): improves UX, never decides, never sees RB.
-    try:
-        nrb_context = {}
-        oid = next_state.get("order_id")
-        if oid and oid in ORDERS:
-            nrb_context["order"] = dict(ORDERS[oid])
-            nrb_context["shipping"] = SHIP.get(oid, {}).get("events", "")
-            nrb_context["policy"] = POLICY.get("R1", {})
-        llm = nrb_llm_reply(msg, next_state, nrb_context)
-        if llm:
-            reply = llm
-    except Exception:
-        pass
+    if "damaged" in lower:
+        next_state["reason_code"] = "DAMAGED"
+    elif "wrong" in lower:
+        next_state["reason_code"] = "WRONG_ITEM"
+    elif "late" in lower or "delay" in lower:
+        next_state["reason_code"] = "LATE_DELIVERY"
+    elif "changed" in lower or "mind" in lower:
+        next_state["reason_code"] = "CHANGED_MIND"
 
-    return jsonify({"reply_markdown": reply, "state": next_state})
+    if "refund" in lower:
+        next_state["requested_resolution"] = "REFUND"
+    elif "exchange" in lower:
+        next_state["requested_resolution"] = "EXCHANGE"
 
-        next_state["order_id"] = oid
+    # 2) Drive the user through the form in a strict order
+    oid = next_state.get("order_id")
+    if not oid:
+        reply = "Share your **order number** (e.g., **ORD-10001**) and I’ll guide the refund request."
+        return jsonify({"reply_markdown": reply, "state": next_state})
+
+    if oid not in ORDERS:
+        reply = "I couldn't find that order number in the demo dataset. Try **ORD-10001**, **ORD-10002**, or **ORD-10003**."
+        # (keep the invalid order_id out of state)
+        next_state.pop("order_id", None)
+        return jsonify({"reply_markdown": reply, "state": next_state})
+
+    # If order is known and reason not set, show the order summary + ask reason
+    if not next_state.get("reason_code"):
         o = ORDERS[oid]
         ship_events = SHIP.get(oid, {}).get("events", "")
         pol = POLICY.get("R1", {})
-
         pay = o.get("payment_method") or o.get("payment") or o.get("payment_type") or o.get("payment_provider") or "—"
 
         reply = (
@@ -267,32 +280,25 @@ def api_chat():
         )
         return jsonify({"reply_markdown": reply, "state": next_state})
 
-    if "damaged" in lower:
-        next_state["reason_code"] = "DAMAGED"
-        reply = "Got it — marked as **Damaged**. Do you want a **refund** or an **exchange**?"
-    elif "wrong" in lower:
-        next_state["reason_code"] = "WRONG_ITEM"
-        reply = "Okay — marked as **Wrong item**. Do you want a **refund** or an **exchange**?"
-    elif "late" in lower or "delay" in lower:
-        next_state["reason_code"] = "LATE_DELIVERY"
-        reply = "Understood — marked as **Late delivery**. Do you want a **refund** or an **exchange**?"
-    elif "changed" in lower or "mind" in lower:
-        next_state["reason_code"] = "CHANGED_MIND"
-        reply = "Noted — marked as **Changed mind**. Do you want a **refund** or an **exchange**?"
-    elif "refund" in lower:
-        next_state["requested_resolution"] = "REFUND"
-        reply = "Thanks. Please confirm: **Submit refund request** for this order?"
-    elif "exchange" in lower:
-        next_state["requested_resolution"] = "EXCHANGE"
-        reply = "Thanks. Please confirm: **Submit refund request** for this order?"
-    elif "submit" in lower and "refund" in lower:
-        reply = "Click the **Submit refund request** button below to formally submit the request."
-    else:
-        reply = "Share your **order number** (e.g., ORD-10001) and I’ll guide the refund request."
+    # If reason set and resolution missing, ask resolution
+    if not next_state.get("requested_resolution"):
+        rc = next_state["reason_code"]
+        pretty = {
+            "DAMAGED": "Damaged",
+            "WRONG_ITEM": "Wrong item",
+            "LATE_DELIVERY": "Late delivery",
+            "CHANGED_MIND": "Changed mind",
+        }.get(rc, rc)
+        reply = f"Got it — reason is **{pretty}**. Do you want a **refund** or an **exchange**?"
+        return jsonify({"reply_markdown": reply, "state": next_state})
 
+    # All present → tell user to submit (no decision pre-submit)
+    reply = "All set. Click **Submit refund request** below to create the commit boundary and see the V2 outcome."
     return jsonify({"reply_markdown": reply, "state": next_state})
 
+
 @app.post("/api/nrb/llm_chat")
+
 def api_llm_chat():
     """
     NRB-only LLM assistant. Must not start RB pipeline; must not access RB artifacts.

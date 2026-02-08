@@ -113,6 +113,14 @@ submitBtn.addEventListener("click", async () => {
 async function refreshV2(){
   if(!lastAttemptId) return;
   const v2 = await api(`/api/v2/${lastAttemptId}`);
+
+  // Post-Submit verdict: YES/NO derived only from V2
+  if(v2 && v2.final_disposition){
+    let verdict = "MANUAL_REVIEW";
+    if(v2.final_disposition === "APPROVED") verdict = "SÌ ✅ (APPROVED)";
+    else if(v2.final_disposition === "DENIED") verdict = "NO ❌ (DENIED)";
+    addMsg("assistant", verdict + " — based on V2 (post-Submit).");
+  }
   v2pre.textContent = JSON.stringify(v2, null, 2);
 
   const needsOverride = !!(v2.authority && v2.authority.override_required);
