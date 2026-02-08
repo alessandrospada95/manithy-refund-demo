@@ -18,7 +18,8 @@ def build_v2(action_attempt_id: str, policy_bundle_id: str,
         "evidence_pack_ref": evidence_pack_ref,
         "capture_receipt_ref": capture_receipt_ref,
         "authority": {
-            "override_required": (au_status == "REQUIRE_OVERRIDE"),
+            "override_allowed": (final_disposition != "APPROVED"),
+            "override_required": (final_disposition != "APPROVED"),
             "override_applied": override_present
         }
     }
