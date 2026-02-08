@@ -123,8 +123,8 @@ async function refreshV2(){
   }
   v2pre.textContent = JSON.stringify(v2, null, 2);
 
-  const needsOverride = !!(v2.authority && v2.authority.override_required);
-  btnOverride.disabled = !(devEnabled && needsOverride);
+  const canOverride = !!(v2.authority && (v2.authority.override_allowed || v2.authority.override_required));
+  btnOverride.disabled = !(devEnabled && canOverride);
   btnReplay.disabled = !devEnabled;
 }
 
