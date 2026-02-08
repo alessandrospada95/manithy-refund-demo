@@ -1,0 +1,4 @@
+order_id,customer_id,total_minor,currency,order_date,delivery_date,items
+ORD-10001,CUST-001,12900,EUR,2026-01-10,2026-01-13,1x Jacket
+ORD-10002,CUST-002,4590,EUR,2025-12-01,2025-12-05,2x T-Shirt
+ORD-10003,CUST-003,25900,EUR,2025-10-01,2025-10-10,1x Shoes

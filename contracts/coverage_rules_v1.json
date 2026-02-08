@@ -1,0 +1,13 @@
+{
+  "covered_reasons": [
+    "DAMAGED",
+    "WRONG_ITEM",
+    "LATE_DELIVERY"
+  ],
+  "policy_bundle_id": "pb_2026Q1_pinned",
+  "refund_window_days": 30,
+  "uncovered_reasons": [
+    "CHANGED_MIND",
+    "OTHER"
+  ]
+}

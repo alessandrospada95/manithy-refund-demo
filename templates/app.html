@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Manithy Refund Demo</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body data-mode="{{ mode }}">
+  <div class="app">
+    <div id="backdrop" class="backdrop"></div>
+    <aside id="devSidebar" class="sidebar hidden">
+      <div class="sidebarHeader">
+        <div>
+          <div class="sidebarTitle">Developer</div>
+          <div class="sidebarSub">Gated preview · no downloads</div>
+        </div>
+        <button id="closeDev" class="iconBtn" title="Close">✕</button>
+      </div>
+
+      <div class="tokenBox">
+        <label>Dev token</label>
+        <input id="devToken" type="password" placeholder="MANITHY_DEV_TOKEN"/>
+        <button id="saveToken" class="btnSecondary">Save</button>
+        <div id="devStatus" class="muted"></div>
+      </div>
+
+      <div class="devActions">
+        <button id="btnReplay" class="btnSecondary" disabled>Replay PASS/FAIL</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="artifactsHeader">
+        <div class="sidebarTitleSm">Artifacts (inline)</div>
+        <div class="muted">RB_INTERNAL / RB_PROOF preview</div>
+      </div>
+      <div id="artifactList" class="artifactList"></div>
+
+      <div class="divider"></div>
+
+      <div class="overrideBox">
+        <div class="sidebarTitleSm">Override</div>
+        <div class="muted">Only when AU = REQUIRE_OVERRIDE</div>
+        <input id="opId" placeholder="operator_id" />
+        <select id="ovDecision">
+          <option value="APPROVE">APPROVE</option>
+          <option value="DENY">DENY</option>
+        </select>
+        <select id="ovReason">
+          <option value="POLICY_EXCEPTION">POLICY_EXCEPTION</option>
+          <option value="CUSTOMER_CARE">CUSTOMER_CARE</option>
+          <option value="FRAUD_REVIEW">FRAUD_REVIEW</option>
+          <option value="OTHER">OTHER</option>
+        </select>
+        <button id="btnOverride" class="btnPrimary" disabled>Commit Override</button>
+        <div id="overrideStatus" class="muted"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">M</div>
+          <div>
+            <div class="brandTitle">Refund Assistant</div>
+            <div class="brandSub">Stakeholder mode · V2-only</div>
+          </div>
+        </div>
+        <div class="topActions">
+          <button id="openDev" class="iconBtn" title="Developer">🛠</button>
+        </div>
+      </header>
+
+      <section id="chat" class="chat"></section>
+
+      <section class="composer">
+        <div class="chips">
+          <button class="chip" data-msg="My order is ORD-10001">ORD-10001</button>
+          <button class="chip" data-msg="My order is ORD-10002">ORD-10002</button>
+          <button class="chip" data-msg="My order is ORD-10003">ORD-10003</button>
+          <button class="chip" data-msg="Damaged">Damaged</button>
+          <button class="chip" data-msg="Late delivery">Late delivery</button>
+          <button class="chip" data-msg="Refund">Refund</button>
+          <button class="chip" id="chipSubmit">Submit</button>
+        </div>
+
+        <div class="composeRow">
+          <textarea id="input" rows="1" placeholder="Message..." autofocus></textarea>
+          <button id="send" class="btnPrimary">Send</button>
+        </div>
+
+        <div class="llmRow">
+          <label class="llmToggle">
+            <input type="checkbox" id="llmToggle">
+            <span>Use LLM assistant (NRB-only)</span>
+          </label>
+          <span id="llmBadge" class="muted"></span>
+        </div>
+
+        <div class="submitRow">
+          <button id="submitRefund" class="btnPrimary" disabled>Submit refund request</button>
+          <div class="muted" id="submitHint">Submit is enabled once order + reason + resolution are provided.</div>
+        </div>
+
+        <div class="v2panel">
+          <div class="panelTitle">V2 Facts Envelope</div>
+          <pre id="v2json" class="json"></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

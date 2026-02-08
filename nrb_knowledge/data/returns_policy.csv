@@ -1,0 +1,2 @@
+rule_id,category,window_days,conditions,exceptions
+R1,refund,30,Refund allowed within 30 days for damaged/wrong item/late delivery.,No refunds for change of mind.

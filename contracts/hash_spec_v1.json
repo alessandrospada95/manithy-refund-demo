@@ -1,0 +1,11 @@
+{
+  "algo": "sha256",
+  "encoding": "hex",
+  "prefixes": {
+    "ccr": "ccrh_",
+    "evidence_pack": "eph_",
+    "manifest": "mh_",
+    "override": "oh_",
+    "ring": "rh_"
+  }
+}

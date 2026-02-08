@@ -1,0 +1,66 @@
+{
+  "age_buckets": [
+    {
+      "id": "D0_0_7",
+      "max": 7,
+      "min": 0
+    },
+    {
+      "id": "D1_8_30",
+      "max": 30,
+      "min": 8
+    },
+    {
+      "id": "D2_31_90",
+      "max": 90,
+      "min": 31
+    },
+    {
+      "id": "D3_90_PLUS",
+      "max": 99999,
+      "min": 91
+    }
+  ],
+  "amount_buckets": [
+    {
+      "id": "B0_0_50",
+      "max_minor": 5000,
+      "min_minor": 0
+    },
+    {
+      "id": "B1_50_200",
+      "max_minor": 20000,
+      "min_minor": 5000
+    },
+    {
+      "id": "B2_200_1000",
+      "max_minor": 100000,
+      "min_minor": 20000
+    },
+    {
+      "id": "B3_1000_PLUS",
+      "max_minor": 999999999,
+      "min_minor": 100000
+    }
+  ],
+  "domain": "refund",
+  "eta_buckets": [
+    "D0_0_2",
+    "D1_3_7",
+    "D2_8_14",
+    "D3_15_PLUS",
+    "UNKNOWN"
+  ],
+  "reason_codes": [
+    "DAMAGED",
+    "WRONG_ITEM",
+    "LATE_DELIVERY",
+    "CHANGED_MIND",
+    "OTHER"
+  ],
+  "resolutions": [
+    "REFUND",
+    "EXCHANGE"
+  ],
+  "version": "v1"
+}

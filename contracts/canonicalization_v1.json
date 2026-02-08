@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "json": "sort_keys_utf8_no_ws",
+    "numbers": "no_floats_in_v2"
+  }
+}

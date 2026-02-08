@@ -1,0 +1,4 @@
+customer_id,tier,region,flags
+CUST-001,GOLD,IT,high_value
+CUST-002,STANDARD,ES,
+CUST-003,STANDARD,IT,repeat_buyer
